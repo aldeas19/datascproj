@@ -9,7 +9,7 @@ Identifique outliers óbvios, padrões de dados em falta e possíveis redundânc
 Saída: Relatório EDA inicial com visualizações (ainda sem pré-processamento).
 
 
-Pessoa 2: Modelação de base e experiências simples - CAROL OR BIA
+Pessoa 2: Modelação de base e experiências simples - BIA
 Tarefas (podem começar de imediato):
 Utilize o conjunto de dados brutos (ou minimamente pré-processados, por exemplo, trate os valores em falta com uma estratégia simples como a imputação de médias).
 Treine modelos de base (por exemplo, regressão logística, árvore de decisão, KNN) com parâmetros padrão.
@@ -18,7 +18,7 @@ Avalie utilizando uma divisão simples de treino e teste (sem ajustes ainda) par
 Saída: pontuações de precisão/recall de base para comparação posterior.
 
 
-Pessoa 3: Pesquisa e Preparação Avançada - CAROL OU BIA
+Pessoa 3: Pesquisa e Preparação Avançada - CAROL
 Tarefas (podem começar de imediato):
 Pesquise o contexto do conjunto de dados (por exemplo, estudos de desempenho dos alunos, enviesamentos conhecidos).
 Planeie abordagens de agrupamento (por exemplo, que recursos utilizar para aprendizagem não supervisionada).
