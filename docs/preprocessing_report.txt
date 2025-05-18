@@ -1,0 +1,11 @@
+=== PREPROCESSING SUMMARY ===
+Original dataset shape: (395, 32)
+Training set shape after oversampling: (424, 56)
+Test set shape: (79, 56)
+
+=== TRANSFORMATIONS APPLIED ===
+1. Absences clipped at 75th percentile
+2. Rare categories in Mjob/Fjob grouped as 'other'
+3. Categorical features one-hot encoded
+4. Numeric features MinMax scaled
+5. Training data oversampled to balance classes

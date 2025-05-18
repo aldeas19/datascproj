@@ -1,0 +1,40 @@
+paths:
+  raw_data: "../data/raw/student-data-raw.csv"
+  processed: 
+    train: "data/processed/train_cleaned.csv"
+    test: "data/processed/test_cleaned.csv"
+  artifacts: "models/preprocessing_artifacts.pkl"
+  reports: "docs/preprocessing_report.txt"
+  plots: "docs/plots/" 
+
+preprocessing:
+  clip:
+    absences_quantile: 0.75
+  encoding:
+    rare_category_threshold: 0.05
+    rare_category_name: "other"
+  sampling:
+    test_size: 0.2
+    random_state: 42
+
+eda:
+  style: "seaborn-v0_8"            
+  dpi: 300                            
+  figure_size:
+    small: [6, 4]                     
+    medium: [8, 6]                 
+    large: [10, 8]                   
+  numeric_cols:                      
+    - "age"
+    - "Medu"
+    - "Fedu"
+    - "traveltime"
+    - "studytime"
+    - "failures"
+    - "famrel"
+    - "freetime"
+    - "goout"
+    - "Dalc"
+    - "Walc"
+    - "health"
+    - "absences"
