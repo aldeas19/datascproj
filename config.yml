@@ -1,15 +1,13 @@
 paths:
-  raw_data: "../data/raw/student-data-raw.csv"
+  raw_data: "/Users/mathilde/Documents/IACD/SEM2/EIACD/PROJETO2!/data/raw/student-data-raw.csv"
   processed: 
     train: "data/processed/train_cleaned.csv"
     test: "data/processed/test_cleaned.csv"
-  artifacts: "models/preprocessing_artifacts.pkl"
-  reports: "docs/preprocessing_report.txt"
-  plots: "docs/plots/" 
+  plots: "../docs/" 
 
 preprocessing:
   clip:
-    absences_quantile: 0.75
+    absences_clip: 10
   encoding:
     rare_category_threshold: 0.05
     rare_category_name: "other"

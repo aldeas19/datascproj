@@ -10,8 +10,8 @@ from .utils import load_config, load_data, save_artifacts, generate_report
 
 def preprocess_data(df, config):
     """Main preprocessing pipeline."""
-    # 1. Clean numerical features
-    absences_clip = df['absences'].quantile(config['preprocessing']['clip']['absences_quantile'])
+    # 1. Clean numerical features - usa valor fixo para clipping
+    absences_clip = config['preprocessing']['clip']['absences_clip']  # valor fixo, ex: 10
     df['absences'] = df['absences'].clip(upper=absences_clip)
     
     # 2. Handle categorical features
@@ -55,8 +55,8 @@ def preprocess_data(df, config):
 
 def validate_preprocessing(df, config):
     """Validate that preprocessing addressed EDA findings"""
-    # Check absences clipping
-    absences_clip = df['absences'].quantile(config['preprocessing']['clip']['absences_quantile'])
+    # Check absences clipping - compara com valor fixo do config
+    absences_clip = config['preprocessing']['clip']['absences_clip']
     assert df['absences'].max() <= absences_clip, "Absences not clipped properly"
     
     # Check rare categories
@@ -70,18 +70,22 @@ def main():
     config = load_config()
     df = load_data(config['paths']['raw_data'])
     
-    # Validate before preprocessing
-    validate_preprocessing(df, config)
-    
-    # Process data
+    # Process data primeiro para aplicar clipping e encoding
     X_train, X_test, y_train, y_test, scaler, numeric_cols, absences_clip = preprocess_data(df, config)
+    
+    # Crie um df pós-processado só com treino para validação
+    df_processed = X_train.copy()
+    df_processed['passed'] = y_train
+    
+    # Agora valide usando o df já com clip aplicado
+    validate_preprocessing(df_processed, config)
     
     # Prepare outputs
     train_processed = pd.concat([X_train, y_train], axis=1)
     test_processed = pd.concat([X_test, y_test], axis=1)
     
-    # Save artifacts
-    Path(config['paths']['processed']['dir']).mkdir(parents=True, exist_ok=True)
+    # Salva arquivos
+    Path(config['paths']['processed']['train']).parent.mkdir(parents=True, exist_ok=True)
     train_processed.to_csv(config['paths']['processed']['train'], index=False)
     test_processed.to_csv(config['paths']['processed']['test'], index=False)
     
@@ -92,7 +96,7 @@ def main():
         path=config['paths']['artifacts']
     )
     
-    # Generate report
+    # Gera relatório
     report_stats = {
         "Original samples": len(df),
         "Train samples": len(X_train),
@@ -101,6 +105,3 @@ def main():
         "Absences clipping threshold": absences_clip
     }
     generate_report(config['paths']['reports'], **report_stats)
-
-if __name__ == "__main__":
-    main()
