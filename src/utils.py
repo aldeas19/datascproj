@@ -17,12 +17,16 @@ def load_data(filepath):
         raise FileNotFoundError(f"Data file not found at {filepath}")
 
 def save_artifacts(scaler, numeric_cols, columns, path):
-    """Save preprocessing artifacts."""
+    """Saves preprocessing artifacts to a single file."""
+    path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)  # ensure directory exists
+
+    artifact_path = path / "preprocessing_artifacts.joblib"  # <-- save into this file
     joblib.dump({
         'scaler': scaler,
         'numeric_cols': numeric_cols,
         'expected_columns': columns
-    }, path)
+    }, artifact_path)
 
 def preprocess_new_data(df, artifacts_path):
     """Preprocess new data using saved artifacts."""

@@ -3,6 +3,8 @@ paths:
   processed: 
     train: "data/processed/train_cleaned.csv"
     test: "data/processed/test_cleaned.csv"
+  artifacts: "artifacts/"
+  reports: "reports/"
   plots: "../docs/" 
 
 preprocessing:
