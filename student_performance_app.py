@@ -27,37 +27,35 @@ acadêmicas e sociais, permitindo intervenções direcionadas.
 @st.cache_resource
 def load_artifacts():
     try:
+        # Carregar modelo e pré-processadores
         model = joblib.load('models/random_forest_model.pkl')
         scaler = joblib.load('models/scaler.pkl')
         label_encoders = joblib.load('models/label_encoders.pkl')
-        df = pd.read_csv("data/raw/student-data-raw.csv")
 
-        # Pré-processar os dados como no notebook
-        df = df.dropna()
-        df['passed'] = df['passed'].map({'yes': 1, 'no': 0})
+        # Carregar dados pré-processados
+        df = pd.read_csv('data/processed/student_data_processed.csv')
 
-        # Codificar variáveis categóricas
-        X = df.drop(columns="passed")
-        for col in X.select_dtypes(include="object").columns:
-            if col in label_encoders:
-                X[col] = label_encoders[col].transform(X[col])
+        # Separar features e target
+        X = df.drop(columns=['passed'])
+        y = df['passed']
 
-        # Normalizar
-        X_scaled = scaler.transform(X)
-        y = df["passed"]
+        # Dividir em treino e teste (como no notebook)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
-        return model, scaler, label_encoders, X_scaled, y, df
+        return model, scaler, label_encoders, X_train, X_test, y_train, y_test, df
 
     except Exception as e:
         st.error(f"Erro ao carregar artefatos: {str(e)}")
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None
 
-model, scaler, label_encoders, X_scaled, y, df = load_artifacts()
+model, scaler, label_encoders, X_train, X_test, y_train, y_test, df = load_artifacts()
 
 # Menu lateral para navegação
 st.sidebar.title("Menu")
 app_mode = st.sidebar.selectbox("Selecione a página", 
-                               ["🏠 Visão Geral", "📊 Análise Exploratória", "🔮 Previsão", "📈 Resultados do Modelo"])
+                              ["🏠 Visão Geral", "📊 Análise Exploratória", "🔮 Previsão", "📈 Resultados do Modelo"])
 
 # Páginas da aplicação
 if app_mode == "🏠 Visão Geral":
@@ -71,21 +69,28 @@ if app_mode == "🏠 Visão Geral":
 elif app_mode == "📊 Análise Exploratória" and df is not None:
     st.header("Análise Exploratória de Dados (EDA)")
 
+    # Converter variáveis categóricas de volta para legibilidade
+    df_display = df.copy()
+    for col in label_encoders:
+        df_display[col] = label_encoders[col].inverse_transform(df[col])
+
     # Seção 1: Distribuição da Variável Target
     st.subheader("Distribuição de Resultados")
     col1, col2 = st.columns(2)
 
     with col1:
         fig, ax = plt.subplots()
-        sns.countplot(x='passed', data=df, order=[0, 1], ax=ax)
+        sns.countplot(x='passed', data=df_display, ax=ax)
         ax.set_title('Contagem de Resultados')
         ax.set_xticklabels(['Chumbou', 'Passou'])
         st.pyplot(fig)
 
     with col2:
         fig, ax = plt.subplots()
-        df['passed'].value_counts().plot.pie(autopct='%1.1f%%', colors=['#ff9999','#66b3ff'], 
-                                            labels=['Chumbou', 'Passou'], ax=ax)
+        df_display['passed'].value_counts().plot.pie(autopct='%1.1f%%', 
+                                                    colors=['#ff9999','#66b3ff'], 
+                                                    labels=['Chumbou', 'Passou'], 
+                                                    ax=ax)
         ax.set_ylabel('')
         ax.set_title('Proporção Passou/Chumbou')
         st.pyplot(fig)
@@ -126,29 +131,29 @@ elif app_mode == "🔮 Previsão" and model is not None:
     if submitted:
         # Criar dataframe com os inputs (com todas as features necessárias)
         input_data = {
-            'school': 'GP',
-            'sex': sex,
+            'school': 0,  # GP codificado como 0
+            'sex': 0 if sex == "F" else 1,
             'age': age,
-            'address': address,
-            'famsize': famsize,
-            'Pstatus': Pstatus,
+            'address': 0 if address == "U" else 1,
+            'famsize': 0 if famsize == "LE3" else 1,
+            'Pstatus': 0 if Pstatus == "T" else 1,
             'Medu': Medu,
             'Fedu': Fedu,
-            'Mjob': 'other',
-            'Fjob': 'other',
-            'reason': 'course',
-            'guardian': 'mother',
+            'Mjob': 4,  # 'other' codificado como 4
+            'Fjob': 4,  # 'other' codificado como 4
+            'reason': 0,  # 'course' codificado como 0
+            'guardian': 1,  # 'mother' codificado como 1
             'traveltime': 1,
             'studytime': studytime,
             'failures': failures,
-            'schoolsup': 'no',
-            'famsup': 'no',
-            'paid': 'no',
-            'activities': 'no',
-            'nursery': 'no',
-            'higher': 'yes',
-            'internet': internet,
-            'romantic': 'no',
+            'schoolsup': 0,  # 'no' codificado como 0
+            'famsup': 0,  # 'no' codificado como 0
+            'paid': 0,  # 'no' codificado como 0
+            'activities': 0,  # 'no' codificado como 0
+            'nursery': 0,  # 'no' codificado como 0
+            'higher': 1,  # 'yes' codificado como 1
+            'internet': 0 if internet == "no" else 1,
+            'romantic': 0,  # 'no' codificado como 0
             'famrel': 4,
             'freetime': 3,
             'goout': goout,
@@ -158,16 +163,11 @@ elif app_mode == "🔮 Previsão" and model is not None:
             'absences': absences
         }
 
-        # Criar DataFrame e converter categóricas
+        # Criar DataFrame com a mesma ordem das colunas do modelo
         df_input = pd.DataFrame([input_data])
-        for col in df_input.select_dtypes(include="object").columns:
-            if col in label_encoders:
-                df_input[col] = label_encoders[col].transform(df_input[col])
+        df_input = df_input[X_train.columns]  # Garantir a mesma ordem
 
-        # Garantir a mesma ordem de colunas que o modelo espera
-        df_input = df_input[df.columns.drop('passed')]
-
-        # Normalizar
+        # Normalizar os dados
         X_input = scaler.transform(df_input)
 
         # Fazer previsão
@@ -189,11 +189,8 @@ elif app_mode == "🔮 Previsão" and model is not None:
         except Exception as e:
             st.error(f"Erro ao fazer previsão: {str(e)}")
 
-elif app_mode == "📈 Resultados do Modelo" and model is not None and X_scaled is not None and y is not None:
+elif app_mode == "📈 Resultados do Modelo" and model is not None and X_test is not None and y_test is not None:
     st.header("Desempenho do Modelo")
-
-    # Dividir em treino e teste para a curva ROC (como no notebook)
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
     # Matriz de Confusão
     st.subheader("Matriz de Confusão")
@@ -223,7 +220,10 @@ elif app_mode == "📈 Resultados do Modelo" and model is not None and X_scaled 
     # Importância das Features
     if hasattr(model, 'feature_importances_'):
         st.subheader("Importância das Features")
-        feature_importance = pd.Series(model.feature_importances_, index=df.columns.drop('passed'))
+
+        # Mapear nomes das features
+        feature_names = X_train.columns
+        feature_importance = pd.Series(model.feature_importances_, index=feature_names)
         top_features = feature_importance.sort_values(ascending=False).head(10)
 
         fig, ax = plt.subplots(figsize=(10, 6))
