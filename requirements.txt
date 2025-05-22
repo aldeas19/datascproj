@@ -16,3 +16,6 @@ nbformat
 jupyter
 scikit-learn
 notebook
+streamlit
+pandas
+joblib
