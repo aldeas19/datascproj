@@ -5,7 +5,8 @@ import joblib
 
 st.title("🎓 Previsão de Aprovação do Aluno")
 
-model = joblib.load('model_streamlit.pkl')
+# Load the pipeline
+pipeline = joblib.load('model_streamlit.pkl')
 
 # Coleta de inputs
 G1 = st.slider("Nota G1", 0, 20, 10)
@@ -21,9 +22,9 @@ input_df = pd.DataFrame({
     'failures': [failures]
 })
 
-# Aplicação do modelo
-prediction = model.predict(input_df)[0]
-prob = model.predict_proba(input_df)[0][1]
+# Aplicação do pipeline
+prediction = pipeline.predict(input_df)[0]
+prob = pipeline.predict_proba(input_df)[0][1]
 
 st.write(f"📊 Probabilidade de passar: {prob:.2%}")
 st.success("✅ O aluno provavelmente passará!" if prediction else "❌ O aluno pode reprovar.")
