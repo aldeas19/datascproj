@@ -94,44 +94,51 @@ elif app_mode == "🔮 Previsão" and artifacts:
     st.header("Previsão de Desempenho Estudantil")
 
     with st.form("student_form"):
-        st.subheader("Informações do Aluno")
-        col1, col2 = st.columns(2)
+    st.subheader("Informações do Aluno")
+    col1, col2 = st.columns(2)
 
-        with col1:
-            age = st.slider("Idade", 15, 22, 17)
-            sex = st.radio("Gênero", ["F", "M"])
-            address = st.radio("Endereço", ["U", "R"])
-            famsize = st.radio("Tamanho da Família", ["LE3", "GT3"])
-            Pstatus = st.radio("Status dos Pais", ["T", "A"])
+    with col1:
+        age = st.slider("Idade", 15, 22, 17)
+        sex = st.radio("Gênero", ["F", "M"])
+        address = st.radio("Endereço", ["U", "R"])
+        famsize = st.radio("Tamanho da Família", ["LE3", "GT3"])
+        Pstatus = st.radio("Status dos Pais", ["T", "A"])
+        Medu = st.selectbox("Educação da Mãe", [0, 1, 2, 3, 4], 
+                          format_func=lambda x: ["Nenhuma", "Primário", "5º-9º", "Secundário", "Superior"][x])
+        Fedu = st.selectbox("Educação do Pai", [0, 1, 2, 3, 4], 
+                          format_func=lambda x: ["Nenhuma", "Primário", "5º-9º", "Secundário", "Superior"][x])
+        failures = st.selectbox("Reprovações Anteriores", [0, 1, 2, 3])
+        absences = st.slider("Faltas", 0, 30, 4)
 
-        with col2:
-            Medu = st.selectbox("Educação da Mãe", [0, 1, 2, 3, 4], 
-                              format_func=lambda x: ["Nenhuma", "Primário", "5º-9º", "Secundário", "Superior"][x])
-            Fedu = st.selectbox("Educação do Pai", [0, 1, 2, 3, 4], 
-                              format_func=lambda x: ["Nenhuma", "Primário", "5º-9º", "Secundário", "Superior"][x])
-            failures = st.selectbox("Reprovações Anteriores", [0, 1, 2, 3])
-            absences = st.slider("Faltas", 0, 30, 4)
-
-        st.subheader("Atividades e Comportamento")
+    with col2:
         studytime = st.selectbox("Tempo de Estudo Semanal", [1, 2, 3, 4], 
                                format_func=lambda x: ["<2h", "2-5h", "5-10h", ">10h"][x-1])
         goout = st.selectbox("Frequência de Saídas", [1, 2, 3, 4, 5], 
                            format_func=lambda x: ["Muito baixa", "Baixa", "Média", "Alta", "Muito alta"][x-1])
         internet = st.radio("Acesso à Internet", ["yes", "no"])
+        Mjob = st.selectbox("Profissão da Mãe", ["teacher", "health", "services", "at_home", "other"])
+        Fjob = st.selectbox("Profissão do Pai", ["teacher", "health", "services", "at_home", "other"])
+        reason = st.selectbox("Motivo de Escolha da Escola", ["home", "reputation", "course", "other"])
+        guardian = st.selectbox("Responsável pelo Aluno", ["mother", "father", "other"])
+        schoolsup = st.radio("Apoio Escolar Extra", ["yes", "no"])
+        famsup = st.radio("Apoio Familiar Extra", ["yes", "no"])
+        activities = st.radio("Atividades Extracurriculares", ["yes", "no"])
+        nursery = st.radio("Frequentou Creche", ["yes", "no"])
+        romantic = st.radio("Relacionamento Amoroso", ["yes", "no"])
 
-        submitted = st.form_submit_button("Prever Desempenho")
+    submitted = st.form_submit_button("Prever Desempenho")
 
-    if submitted:
-        input_data = {
-            'school': 'GP', 'sex': sex, 'age': age, 'address': address,
-            'famsize': famsize, 'Pstatus': Pstatus, 'Medu': Medu, 'Fedu': Fedu,
-            'Mjob': 'other', 'Fjob': 'other', 'reason': 'course', 'guardian': 'mother',
-            'traveltime': 1, 'studytime': studytime, 'failures': failures,
-            'schoolsup': 'no', 'famsup': 'no', 'paid': 'no', 'activities': 'no',
-            'nursery': 'no', 'higher': 'yes', 'internet': internet, 'romantic': 'no',
-            'famrel': 4, 'freetime': 3, 'goout': goout, 'Dalc': 1, 'Walc': 2,
-            'health': 3, 'absences': absences
-        }
+if submitted:
+    input_data = {
+        'school': 'GP', 'sex': sex, 'age': age, 'address': address,
+        'famsize': famsize, 'Pstatus': Pstatus, 'Medu': Medu, 'Fedu': Fedu,
+        'Mjob': Mjob, 'Fjob': Fjob, 'reason': reason, 'guardian': guardian,
+        'traveltime': 1, 'studytime': studytime, 'failures': failures,
+        'schoolsup': schoolsup, 'famsup': famsup, 'paid': 'yes', 'activities': activities,
+        'nursery': nursery, 'higher': 'yes', 'internet': internet, 'romantic': romantic,
+        'famrel': 4, 'freetime': 3, 'goout': goout, 'Dalc': 1, 'Walc': 2,
+        'health': 3, 'absences': absences
+    }
 
         encoded_data = encode_input(input_data, artifacts['label_encoders'])
 
