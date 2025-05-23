@@ -1,21 +1,25 @@
+from sklearn.pipeline import Pipeline
 import streamlit as st
 import pandas as pd
 import joblib
 
 st.set_page_config(page_title="Sistema de Previsão Estudantil", page_icon="🎓")
-
 st.title("🎓 Sistema de Previsão de Desempenho Estudantil")
 
-# Função para carregar pipeline salvo
 @st.cache_resource
-def load_pipeline():
+def load_pipeline_and_encoders():
     return joblib.load("models/student_success_pipeline.pkl")
 
-pipeline = load_pipeline()
+full_pipeline, label_encoders = load_pipeline_and_encoders()
 
-st.sidebar.header("Informe os dados do aluno")
+# Criar pipeline para predição sem oversampler
+predict_pipeline = Pipeline(steps=[
+    ('preprocessor', full_pipeline.named_steps['preprocessor']),
+    ('classifier', full_pipeline.named_steps['classifier'])
+])
 
-# Aqui você coloca os inputs que seu modelo espera
+# Inputs do usuário (igual ao seu)
+
 age = st.sidebar.slider("Idade", 15, 22, 17)
 sex = st.sidebar.selectbox("Sexo", ["F", "M"])
 address = st.sidebar.selectbox("Endereço", ["U", "R"])
@@ -42,7 +46,6 @@ activities = st.sidebar.selectbox("Atividades Extracurriculares", ["yes","no"])
 nursery = st.sidebar.selectbox("Frequentou Creche", ["yes","no"])
 romantic = st.sidebar.selectbox("Relacionamento Amoroso", ["yes","no"])
 
-# Montar DataFrame para previsão
 input_dict = {
     'age': age,
     'sex': sex,
@@ -67,10 +70,28 @@ input_dict = {
     'romantic': romantic
 }
 
-df_input = pd.DataFrame([input_dict])
+# Função para aplicar label encoding usando os encoders treinados
+def encode_input(input_dict, label_encoders):
+    encoded = {}
+    for col, val in input_dict.items():
+        if col in label_encoders:
+            le = label_encoders[col]
+            val_str = str(val)
+            if val_str in le.classes_:
+                encoded[col] = le.transform([val_str])[0]
+            else:
+                # Valor desconhecido, pode tratar como o valor mais comum ou o primeiro da lista
+                encoded[col] = le.transform([le.classes_[0]])[0]
+        else:
+            encoded[col] = val
+    return encoded
+
+# Codificar o input do usuário
+encoded_input = encode_input(input_dict, label_encoders)
+df_input = pd.DataFrame([encoded_input])
 
 if st.button("Prever desempenho"):
-    proba = pipeline.predict_proba(df_input)[0][1]
+    proba = predict_pipeline.predict_proba(df_input)[0][1]
     st.subheader("Resultado da Previsão")
     
     if proba > 0.7:
@@ -80,7 +101,6 @@ if st.button("Prever desempenho"):
     else:
         st.warning(f"⚠️ Probabilidade intermediária: {proba*100:.1f}%")
 
-    # Validações simples, exemplo:
     warnings = []
     if failures > 0 and absences > 10:
         warnings.append("⚠️ Histórico de reprovações e muitas faltas.")
