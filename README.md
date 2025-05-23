@@ -47,7 +47,23 @@ Este projeto utiliza várias bibliotecas do ecossistema de ciência de dados em 
 
 ## ⚙️ Instalação das dependências 
 
-Segue os passos abaixo para executar o projeto localmente:
+1. Certifique-se de ter o VS code instalado
+
+2. Para iniciar o jogo é necessário ter algum interpretador python na sua máquina. Ex: python ou anaconda
+
+- Aceda o site oficial: https://www.python.org/downloads/
+- Clique em "Download Python 3.x.x" (versão mais recente, ex: 3.12). O Windows/macOS/Linux serão detectados automaticamente.
+- Localize o arquivo baixado (ex: python-3.12.1-amd64.exe) e dê duplo clique.
+
+Na primeira tela:
+
+
+- ✅ Marque a opção "Add python.exe to PATH" (CRUCIAL para rodar Python no CMD).
+- ✅ Recomendado: Selecione "Install Now" (instalação padrão para usuários iniciantes).
+
+Clique em "Install" > Aguarde a conclusão (> barra de progresso azul).
+
+Em seguida, siga os passos abaixo para executar o projeto localmente:
 ### 1. Clonar o repositório
 ```
 git clone https://github.com/aldeas19/datascproj.git
