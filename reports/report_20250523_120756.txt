@@ -1,0 +1,6 @@
+=== PREPROCESSING REPORT ===
+Original_samples: 395
+Train_samples: 424
+Test_samples: 79
+Numerical_features: ['age', 'Medu', 'Fedu', 'traveltime', 'studytime', 'failures', 'famrel', 'freetime', 'goout', 'Dalc', 'Walc', 'health', 'absences']
+Absences_clipping_threshold: 10
