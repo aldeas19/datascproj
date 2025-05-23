@@ -54,15 +54,8 @@ def validate_inputs(input_data):
     return warnings
 
 def adjust_probability(proba, input_data):
-    penalty = 1.0
-    if input_data['failures'] > 0:
-        penalty *= 0.7
-    if input_data['absences'] > 15:
-        penalty *= 0.8
-    if input_data['Medu'] == 0 or input_data['Fedu'] == 0:
-        penalty *= 0.9
-    adjusted_proba = proba * penalty
-    return max(0.05, min(0.95, adjusted_proba))
+    # Desabilitar penalizações manuais para depuração
+    return max(0.05, min(0.95, proba))  # ajuste direto sem penalidade
 
 artifacts = load_artifacts()
 
@@ -85,6 +78,7 @@ if app_mode == "🏠 Visão Geral":
             st.metric("Proporção de Aprovações", f"{artifacts['dataset_info']['class_distribution'][1]:.1%}")
         with col2:
             st.metric("Proporção de Reprovações", f"{artifacts['dataset_info']['class_distribution'][0]:.1%}")
+        st.write("Distribuição da classe:", artifacts['dataset_info']['class_distribution'])
 
 elif app_mode == "📊 Análise Exploratória" and artifacts:
     st.header("Análise Exploratória de Dados")
@@ -142,8 +136,13 @@ elif app_mode == "🔮 Previsão" and artifacts:
         encoded_data = encode_input(input_data, artifacts['label_encoders'])
 
         df_input = pd.DataFrame([encoded_data])[artifacts['feature_names']]
+        st.write("📄 Dados codificados:", df_input)
+
         X_input = artifacts['scaler'].transform(df_input)
+        st.write("📈 Dados escalados:", X_input)
+
         proba = artifacts['model'].predict_proba(X_input)[0][1]
+        st.write(f"📊 Probabilidade bruta do modelo: {proba:.2%}")
 
         adjusted_proba = adjust_probability(proba, input_data)
 
