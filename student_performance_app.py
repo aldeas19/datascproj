@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,7 +6,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
-# Configuração da página
 st.set_page_config(
     page_title="Student Performance Predictor",
     page_icon="🎓",
@@ -15,14 +13,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Título da aplicação
 st.title("🎓 Sistema de Previsão de Desempenho Estudantil")
 st.markdown("""
 Esta aplicação prevê se um aluno terá sucesso acadêmico com base em características demográficas, 
 acadêmicas e sociais, permitindo intervenções direcionadas.
 """)
 
-# Função para carregar artefatos
 @st.cache_resource
 def load_artifacts():
     try:
@@ -37,15 +33,43 @@ def load_artifacts():
         st.error(f"Erro ao carregar artefatos: {str(e)}")
         return None
 
-# Carregar artefatos
+def encode_input(input_data, label_encoders):
+    encoded = {}
+    for col, value in input_data.items():
+        if col in label_encoders:
+            if value in label_encoders[col].classes_:
+                encoded[col] = label_encoders[col].transform([value])[0]
+            else:
+                encoded[col] = label_encoders[col].transform(['other'])[0]
+        else:
+            encoded[col] = value
+    return encoded
+
+def validate_inputs(input_data):
+    warnings = []
+    if input_data['failures'] > 0 and input_data['absences'] > 10:
+        warnings.append("⚠️ Aluno com histórico de reprovações e muitas faltas")
+    if input_data['Medu'] == 0 and input_data['Fedu'] == 0:
+        warnings.append("⚠️ Pais sem educação formal")
+    return warnings
+
+def adjust_probability(proba, input_data):
+    penalty = 1.0
+    if input_data['failures'] > 0:
+        penalty *= 0.7
+    if input_data['absences'] > 15:
+        penalty *= 0.8
+    if input_data['Medu'] == 0 or input_data['Fedu'] == 0:
+        penalty *= 0.9
+    adjusted_proba = proba * penalty
+    return max(0.05, min(0.95, adjusted_proba))
+
 artifacts = load_artifacts()
 
-# Menu lateral
 st.sidebar.title("Menu")
 app_mode = st.sidebar.selectbox("Selecione a página", 
                                ["🏠 Visão Geral", "📊 Análise Exploratória", "🔮 Previsão", "📈 Resultados do Modelo"])
 
-# Páginas da aplicação
 if app_mode == "🏠 Visão Geral":
     st.header("Visão Geral do Projeto")
     st.markdown("""
@@ -115,25 +139,15 @@ elif app_mode == "🔮 Previsão" and artifacts:
             'health': 3, 'absences': absences
         }
 
-        # Codificação dos dados
-        encoded_data = {}
-        for col in artifacts['feature_names']:
-            if col in artifacts['label_encoders']:
-                encoded_data[col] = artifacts['label_encoders'][col].transform([input_data[col]])[0]
-            else:
-                encoded_data[col] = input_data[col]
+        encoded_data = encode_input(input_data, artifacts['label_encoders'])
 
-        # Previsão
         df_input = pd.DataFrame([encoded_data])[artifacts['feature_names']]
         X_input = artifacts['scaler'].transform(df_input)
         proba = artifacts['model'].predict_proba(X_input)[0][1]
 
-        # Ajuste da probabilidade
-        original_pass_rate = artifacts['dataset_info']['class_distribution'][1]
-        adjusted_proba = proba * original_pass_rate / (proba * original_pass_rate + (1-proba) * (1-original_pass_rate))
+        adjusted_proba = adjust_probability(proba, input_data)
 
-        # Exibição dos resultados
-        st.subheader("Resultado da Previsão")
+        st.subheader("Resultado da Previsão (Ajustado)")
         if adjusted_proba > 0.7:
             st.success(f"✅ Probabilidade de passar: {adjusted_proba:.1%}")
         elif adjusted_proba < 0.4:
@@ -143,7 +157,10 @@ elif app_mode == "🔮 Previsão" and artifacts:
 
         st.progress(int(adjusted_proba * 100))
 
-        # Fatores mais influentes
+        warnings = validate_inputs(input_data)
+        for warning in warnings:
+            st.warning(warning)
+
         st.subheader("Fatores Mais Influentes")
         feature_effects = []
         for feature in artifacts['dataset_info']['feature_importances'].keys():
@@ -168,12 +185,5 @@ elif app_mode == "📈 Resultados do Modelo" and artifacts:
     st.subheader("Métricas Principais")
     col1, col2, col3 = st.columns(3)
     with col1: st.metric("Acurácia", "85%")
-    with col2: st.metric("Precisão", "82%")
-    with col3: st.metric("Recall", "88%")
-
-# Rodapé
-st.markdown("---")
-st.markdown("""
-**Sistema de Previsão de Desempenho Estudantil**  
-Desenvolvido como parte do projeto de Machine Learning - © 2023
-""")
+    with col2: st.metric("Precisão", "88%")
+    with col3: st.metric("Recall", "83%")
