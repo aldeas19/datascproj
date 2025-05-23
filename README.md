@@ -67,12 +67,16 @@ Em seguida, siga os passos abaixo para executar o projeto localmente:
 ### 1. Clonar o repositório
 ```
 git clone https://github.com/aldeas19/datascproj.git
+```
+```
 cd datascproj
 ```
 
 ### 2. Criar um ambiente virtual (opcional, mas recomendando)
  ```
 python -m venv venv
+```
+```
 source venv/bin/activate  # No Windows: venv\Scripts\activate
 ```
 Usando requirements.txt:
